@@ -4,4 +4,14 @@ body,
     padding: 0;
     margin: 0;
     height: 100%;
+    min-width: 1336px;
+}
+.el-card {
+    margin-top: 15px
+}
+.el-pagination{
+    margin-top: 15px;
+}
+.el-table {
+    margin-top: 15px;
 }

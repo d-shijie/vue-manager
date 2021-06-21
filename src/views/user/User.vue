@@ -56,9 +56,9 @@
             label="操作"
             width="180">
           <template slot-scope="scope">
-          <el-button @click="showEditDialog(scope.row.id)" type="primary" icon="el-icon-edit" circle></el-button>
-          <el-button type="danger" icon="el-icon-delete" circle></el-button>
-          <el-button type="warning" icon="el-icon-setting" circle></el-button>
+            <el-button @click="showEditDialog(scope.row.id)" type="primary" icon="el-icon-edit" circle></el-button>
+            <el-button @click="removeUser(scope.row.id)" type="danger" icon="el-icon-delete" circle></el-button>
+            <el-button @click="showSetRightsDialog(scope.row)" type="warning" icon="el-icon-setting" circle></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -97,7 +97,7 @@
   </span>
     </el-dialog>
     <el-dialog
-        title="提示"
+        title="编辑"
         :visible.sync="editDialogVisible"
         width="40%">
       <el-form :model="editForm" :rules="editFormRules" ref="editForm" label-width="100px">
@@ -113,7 +113,29 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
     <el-button @click="editDialogVisible = false">取 消</el-button>
-    <el-button type="primary" @click="editDialogVisible = false">确 定</el-button>
+    <el-button type="primary" @click="editUser">确 定</el-button>
+  </span>
+    </el-dialog>
+    <el-dialog
+        title="分配角色"
+        :visible.sync="setRightsDialogVisible"
+        width="50%">
+      <div>
+        <p>当前用户：{{userInfo.username}}</p>
+        <p>当前角色：{{userInfo.role_name}}</p>
+        <p>分配新角色： <el-select v-model="selectRoleId" placeholder="请选择">
+          <el-option
+              v-for="item in rolesList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id">
+          </el-option>
+        </el-select></p>
+      </div>
+
+      <span slot="footer" class="dialog-footer">
+    <el-button @click="setRightsDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="setRoles">确 定</el-button>
   </span>
     </el-dialog>
   </div>
@@ -167,7 +189,7 @@ export default {
           {required:true,message:"请输入邮箱",trigger:"blur"},
           {validator:checkEmail,trigger: "blur"}
         ],
-        phone:[
+        mobile:[
           {required:true,message:"请输入手机号",trigger:"blur"},
           {validator:checkPhone,trigger: "blur"}
         ],
@@ -179,7 +201,11 @@ export default {
           {validator:checkEmail,trigger: "blur"}],
         mobile:[{required:true,message:"请输入手机号",trigger: "blur"},
           {validator:checkPhone,trigger: "blur"}]
-      }
+      },
+      setRightsDialogVisible:false,
+      userInfo:{},
+      rolesList:[],
+      selectRoleId:""
     }
   },
   created() {
@@ -229,14 +255,73 @@ export default {
     addDialogClose(){
       this.$refs.addForm.resetFields()
     },
-   async showEditDialog(id){
-  const {data:res}=await this.$http.get("users/"+id)
-     if(res.meta.status!==200){
-       this.$message.error("查询失败")
-     }else {
-       this.editForm=res.data
-       this.editDialogVisible=true
-     }
+    async showEditDialog(id){
+      const {data:res}=await this.$http.get("users/"+id)
+      if(res.meta.status!==200){
+        this.$message.error("查询失败")
+      }else {
+        this.editForm=res.data
+        this.editDialogVisible=true
+      }
+    },
+    editUser(){
+      this.$refs.editForm.validate(valid=>{
+        if(valid===false){
+          return
+        }else {
+          this.$http.put("users/"+this.editForm.id,
+              {email:this.editForm.email,mobile:this.editForm.mobile})
+              .then(res=>{
+                this.getUserList()
+                this.editDialogVisible=false
+              }).catch(err=>{
+            this.$message.error("修改用户失败")
+          })
+        }
+      })
+    },
+    removeUser(id){
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$http.delete("users/"+id).then(res=>{
+          this.getUserList()
+          this.$message.success("删除成功")
+        }).catch(err=>{
+          this.$message.error("删除失败")
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
+      });
+    },
+    showSetRightsDialog(role){
+      this.userInfo=role
+      this.getRolesList()
+      this.setRightsDialogVisible=true
+    },
+    getRolesList() {
+      this.$http.get("roles").then(res=>{
+        this.rolesList=res.data.data
+      }).catch(err=>{
+        this.$message.error("获取角色列表失败")
+      })
+    },
+    setRoles(){
+      if(!this.selectRoleId){
+        this.$message.info("请选择要分配的角色")
+      }else {
+        this.$http.put("users/"+this.userInfo.id+"/role",{rid:this.selectRoleId}).then(res=>{
+          this.getUserList()
+          this.setRightsDialogVisible=false
+        }).catch(err=>{
+          this.$message.error("分配失败")
+        })
+      }
     }
   }
 }
