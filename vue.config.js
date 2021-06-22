@@ -1,5 +1,5 @@
 const path = require("path");
-module.export={
+module.exports={
     devServer:{
         open:true,
         proxy:{
