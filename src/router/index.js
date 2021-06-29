@@ -10,6 +10,8 @@ const Roles=()=>import("../views/power/Roles")
 const Goods=()=>import("../views/goods/Goods")
 const Params=()=>import("../views/goods/Params")
 const Category=()=>import("../views/goods/Category")
+const Add=()=>import("../views/goods/Add")
+const Report=()=>import("../views/report/Report")
 const routes=[
     {
         path:"",
@@ -54,6 +56,14 @@ const routes=[
             {
                 path: "/categories",
                 component:Category
+            },
+            {
+                path:"/goods/add",
+                component:Add
+            },
+            {
+                path:"/reports",
+                component:Report
             }
         ]
     }

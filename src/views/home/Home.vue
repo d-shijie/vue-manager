@@ -88,13 +88,16 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #6d6363;
+  background-color: #181818;
 }
 .el-aside {
-  background-color: #64646c;
+  background-color: #636262;
 }
 .el-main {
-  background-color: #f2f2f2;
+  background:-webkit-linear-gradient(top,rgba(0,0,0,.3),white);
+}
+.el-submenu {
+  background-color: #2e2e45;
 }
 .left {
   display: flex;
